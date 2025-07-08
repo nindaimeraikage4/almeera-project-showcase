@@ -1,13 +1,15 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Layout from "@/components/layout/Layout";
+import HeroSection from "@/components/home/HeroSection";
+import AboutPreview from "@/components/home/AboutPreview";
+import ProjectCarousel from "@/components/home/ProjectCarousel";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Layout>
+      <HeroSection />
+      <AboutPreview />
+      <ProjectCarousel />
+    </Layout>
   );
 };
 
