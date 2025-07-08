@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import almeeraLogo from "@/assets/almeera-logo.png";
+import UserNav from "./UserNav";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,9 +49,7 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
-            <Button variant="default" size="sm" asChild>
-              <Link to="/contact">Konsultasi Gratis</Link>
-            </Button>
+            <UserNav />
           </nav>
 
           {/* Mobile Menu Button */}
@@ -85,9 +84,7 @@ const Header = () => {
                 </Link>
               ))}
               <div className="px-3 py-2">
-                <Button variant="default" size="sm" asChild className="w-full">
-                  <Link to="/contact">Konsultasi Gratis</Link>
-                </Button>
+                <UserNav />
               </div>
             </div>
           </div>
