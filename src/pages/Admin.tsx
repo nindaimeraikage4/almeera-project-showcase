@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminRoles } from '@/hooks/useAdminRoles';
 import { Navigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Image, Video, Camera } from 'lucide-react';
+import { Plus, Edit, Trash2, Image, Video, Camera, UserCog } from 'lucide-react';
 
 interface Content {
   id: string;
@@ -29,12 +30,22 @@ interface Content {
   created_at: string;
 }
 
+interface UserProfile {
+  user_id: string;
+  full_name: string;
+  role: string;
+}
+
 const Admin = () => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, userRole } = useAuth();
   const { toast } = useToast();
+  const { changeUserRole } = useAdminRoles();
   const [contents, setContents] = useState<Content[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<Content | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -44,12 +55,19 @@ const Admin = () => {
     category: '',
     is_featured: false
   });
+  const [roleFormData, setRoleFormData] = useState({
+    newRole: 'user' as 'admin' | 'user' | 'super_admin',
+    reason: ''
+  });
 
   useEffect(() => {
     if (isAdmin) {
       fetchContents();
+      if (userRole === 'super_admin') {
+        fetchUsers();
+      }
     }
-  }, [isAdmin]);
+  }, [isAdmin, userRole]);
 
   if (loading) {
     return (
@@ -79,6 +97,32 @@ const Admin = () => {
       });
     } else {
       setContents((data || []) as Content[]);
+    }
+  };
+
+  const fetchUsers = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(`
+        user_id,
+        full_name,
+        user_roles!inner(role)
+      `)
+      .order('full_name', { ascending: true });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch users",
+        variant: "destructive",
+      });
+    } else {
+      const formattedUsers = (data || []).map((user: any) => ({
+        user_id: user.user_id,
+        full_name: user.full_name || 'No Name',
+        role: user.user_roles?.role || 'user'
+      }));
+      setUsers(formattedUsers);
     }
   };
 
@@ -167,6 +211,25 @@ const Admin = () => {
     });
     setEditingContent(null);
     setIsDialogOpen(false);
+  };
+
+  const handleRoleChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedUser) return;
+
+    const result = await changeUserRole(
+      selectedUser.user_id,
+      roleFormData.newRole,
+      roleFormData.reason
+    );
+
+    if (result.success) {
+      setIsRoleDialogOpen(false);
+      setSelectedUser(null);
+      setRoleFormData({ newRole: 'user', reason: '' });
+      fetchUsers(); // Refresh user list
+    }
   };
 
   const openEditDialog = (content: Content) => {
@@ -326,11 +389,79 @@ const Admin = () => {
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* Role Change Dialog */}
+          <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Ubah Role User</DialogTitle>
+              </DialogHeader>
+              
+              {selectedUser && (
+                <form onSubmit={handleRoleChange} className="space-y-4">
+                  <div>
+                    <Label>User: {selectedUser.full_name}</Label>
+                    <p className="text-sm text-muted-foreground">Role saat ini: {selectedUser.role}</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="newRole">Role Baru</Label>
+                    <Select
+                      value={roleFormData.newRole}
+                      onValueChange={(value: 'admin' | 'user' | 'super_admin') => 
+                        setRoleFormData({ ...roleFormData, newRole: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="reason">Alasan Perubahan (Opsional)</Label>
+                    <Textarea
+                      id="reason"
+                      value={roleFormData.reason}
+                      onChange={(e) => setRoleFormData({ ...roleFormData, reason: e.target.value })}
+                      placeholder="Berikan alasan perubahan role..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button type="submit">
+                      Ubah Role
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsRoleDialogOpen(false);
+                        setSelectedUser(null);
+                        setRoleFormData({ newRole: 'user', reason: '' });
+                      }}
+                    >
+                      Batal
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Tabs defaultValue="content" className="space-y-6">
           <TabsList>
             <TabsTrigger value="content">Kelola Konten</TabsTrigger>
+            {userRole === 'super_admin' && (
+              <TabsTrigger value="users">Kelola User</TabsTrigger>
+            )}
             <TabsTrigger value="analytics">Statistik</TabsTrigger>
           </TabsList>
 
@@ -399,6 +530,58 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {userRole === 'super_admin' && (
+            <TabsContent value="users">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kelola Role User</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nama Lengkap</TableHead>
+                        <TableHead>Role Saat Ini</TableHead>
+                        <TableHead>Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <TableRow key={user.user_id}>
+                          <TableCell className="font-medium">{user.full_name}</TableCell>
+                          <TableCell>
+                            <Badge variant={user.role === 'super_admin' ? 'default' : user.role === 'admin' ? 'secondary' : 'outline'}>
+                              {user.role === 'super_admin' && 'Super Admin'}
+                              {user.role === 'admin' && 'Admin'}
+                              {user.role === 'user' && 'User'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setRoleFormData({
+                                  newRole: user.role as 'admin' | 'user' | 'super_admin',
+                                  reason: ''
+                                });
+                                setIsRoleDialogOpen(true);
+                              }}
+                            >
+                              <UserCog className="h-4 w-4 mr-2" />
+                              Ubah Role
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           <TabsContent value="analytics">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

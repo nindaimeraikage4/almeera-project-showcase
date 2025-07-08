@@ -166,17 +166,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast({
-        title: "Sign out failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    try {
+      // Clear local state first
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Logout error:', error);
+        toast({
+          title: "Sign out failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return { error };
+      }
 
-    return { error };
+      // Force a page reload to clear any cached state
+      window.location.href = '/';
+      
+      return { error: null };
+    } catch (err: any) {
+      console.error('Unexpected logout error:', err);
+      // Force clear everything even if there's an error
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      window.location.href = '/';
+      return { error: err };
+    }
   };
 
   const resetPassword = async (email: string) => {
