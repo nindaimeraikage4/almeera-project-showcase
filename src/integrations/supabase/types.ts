@@ -25,6 +25,7 @@ export type Database = {
           is_featured: boolean | null
           thumbnail_url: string | null
           title: string
+          tour_id: string | null
           type: string
           updated_at: string
         }
@@ -38,6 +39,7 @@ export type Database = {
           is_featured?: boolean | null
           thumbnail_url?: string | null
           title: string
+          tour_id?: string | null
           type: string
           updated_at?: string
         }
@@ -51,10 +53,54 @@ export type Database = {
           is_featured?: boolean | null
           thumbnail_url?: string | null
           title?: string
+          tour_id?: string | null
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      image_edits: {
+        Row: {
+          applied_at: string
+          created_by: string
+          edit_data: Json
+          edit_type: string
+          id: string
+          scene_id: string
+        }
+        Insert: {
+          applied_at?: string
+          created_by: string
+          edit_data: Json
+          edit_type: string
+          id?: string
+          scene_id: string
+        }
+        Update: {
+          applied_at?: string
+          created_by?: string
+          edit_data?: Json
+          edit_type?: string
+          id?: string
+          scene_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_edits_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "tour_scenes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
@@ -116,6 +162,107 @@ export type Database = {
         }
         Relationships: []
       }
+      scene_hotspots: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon_type: string | null
+          id: string
+          media_url: string | null
+          position: Json
+          scene_id: string
+          target_scene_id: string | null
+          title: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon_type?: string | null
+          id?: string
+          media_url?: string | null
+          position: Json
+          scene_id: string
+          target_scene_id?: string | null
+          title?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon_type?: string | null
+          id?: string
+          media_url?: string | null
+          position?: Json
+          scene_id?: string
+          target_scene_id?: string | null
+          title?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scene_hotspots_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "tour_scenes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scene_hotspots_target_scene_id_fkey"
+            columns: ["target_scene_id"]
+            isOneToOne: false
+            referencedRelation: "tour_scenes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_scenes: {
+        Row: {
+          created_at: string
+          hotspots: Json | null
+          id: string
+          image_360_url: string
+          initial_view: Json | null
+          order_index: number | null
+          thumbnail_url: string | null
+          title: string
+          tour_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hotspots?: Json | null
+          id?: string
+          image_360_url: string
+          initial_view?: Json | null
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title: string
+          tour_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hotspots?: Json | null
+          id?: string
+          image_360_url?: string
+          initial_view?: Json | null
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          tour_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_scenes_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -137,6 +284,39 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      virtual_tours: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_published: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

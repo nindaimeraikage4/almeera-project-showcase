@@ -2,13 +2,15 @@ import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Home, Filter } from "lucide-react";
+import { Eye, Home, Filter, Edit } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import project1 from "@/assets/project-1.jpg";
 import project2 from "@/assets/project-2.jpg";
 import project3 from "@/assets/project-3.jpg";
 
 const Portfolio = () => {
+  const { isAdmin } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState("Semua");
 
   const projects = [
@@ -119,15 +121,17 @@ const Portfolio = () => {
                   className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
                     <Button size="sm" variant="secondary" className="bg-white/90 hover:bg-white">
                       <Eye className="h-4 w-4 mr-1" />
-                      Detail
+                      Lihat
                     </Button>
-                    <Button size="sm" className="bg-primary hover:bg-primary-hover">
-                      <Home className="h-4 w-4 mr-1" />
-                      Tour 360°
-                    </Button>
+                    {isAdmin && (
+                      <Button size="sm" className="bg-primary hover:bg-primary-hover">
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="absolute top-4 left-4 flex gap-2">
