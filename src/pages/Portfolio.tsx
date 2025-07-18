@@ -122,14 +122,18 @@ const Portfolio = () => {
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-                    <Button size="sm" variant="secondary" className="bg-white/90 hover:bg-white">
-                      <Eye className="h-4 w-4 mr-1" />
-                      Lihat
+                    <Button size="sm" variant="secondary" className="bg-white/90 hover:bg-white" asChild>
+                      <a href={`/tour/${project.id}`}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        Lihat
+                      </a>
                     </Button>
                     {isAdmin && (
-                      <Button size="sm" className="bg-primary hover:bg-primary-hover">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
+                      <Button size="sm" className="bg-primary hover:bg-primary/80" asChild>
+                        <a href="/admin">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </a>
                       </Button>
                     )}
                   </div>

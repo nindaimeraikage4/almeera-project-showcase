@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Image, Video, Camera, UserCog } from 'lucide-react';
+import { Tour360Manager } from '@/components/admin/Tour360Manager';
 
 interface Content {
   id: string;
@@ -459,6 +460,7 @@ const Admin = () => {
         <Tabs defaultValue="content" className="space-y-6">
           <TabsList>
             <TabsTrigger value="content">Kelola Konten</TabsTrigger>
+            <TabsTrigger value="tours">360° Tours</TabsTrigger>
             {userRole === 'super_admin' && (
               <TabsTrigger value="users">Kelola User</TabsTrigger>
             )}
@@ -614,6 +616,10 @@ const Admin = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="tours">
+            <Tour360Manager />
           </TabsContent>
         </Tabs>
       </div>
