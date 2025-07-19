@@ -47,6 +47,8 @@ const Admin = () => {
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<Content | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [loadingContents, setLoadingContents] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -85,45 +87,55 @@ const Admin = () => {
   }
 
   const fetchContents = async () => {
-    const { data, error } = await supabase
-      .from('content')
-      .select('*')
-      .order('created_at', { ascending: false });
+    setLoadingContents(true);
+    try {
+      const { data, error } = await supabase
+        .from('content')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch contents",
-        variant: "destructive",
-      });
-    } else {
-      setContents((data || []) as Content[]);
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch contents",
+          variant: "destructive",
+        });
+      } else {
+        setContents((data || []) as Content[]);
+      }
+    } finally {
+      setLoadingContents(false);
     }
   };
 
   const fetchUsers = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select(`
-        user_id,
-        full_name,
-        user_roles!inner(role)
-      `)
-      .order('full_name', { ascending: true });
+    setLoadingUsers(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          user_id,
+          full_name,
+          user_roles!inner(role)
+        `)
+        .order('full_name', { ascending: true });
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        variant: "destructive",
-      });
-    } else {
-      const formattedUsers = (data || []).map((user: any) => ({
-        user_id: user.user_id,
-        full_name: user.full_name || 'No Name',
-        role: user.user_roles?.role || 'user'
-      }));
-      setUsers(formattedUsers);
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch users",
+          variant: "destructive",
+        });
+      } else {
+        const formattedUsers = (data || []).map((user: any) => ({
+          user_id: user.user_id,
+          full_name: user.full_name || 'No Name',
+          role: user.user_roles?.role || 'user'
+        }));
+        setUsers(formattedUsers);
+      }
+    } finally {
+      setLoadingUsers(false);
     }
   };
 
@@ -473,6 +485,11 @@ const Admin = () => {
                 <CardTitle>Daftar Konten</CardTitle>
               </CardHeader>
               <CardContent>
+                {loadingContents ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-muted-foreground">Memuat konten...</div>
+                  </div>
+                ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -529,6 +546,7 @@ const Admin = () => {
                     ))}
                   </TableBody>
                 </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -540,6 +558,11 @@ const Admin = () => {
                   <CardTitle>Kelola Role User</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {loadingUsers ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-muted-foreground">Memuat data user...</div>
+                    </div>
+                  ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -580,6 +603,7 @@ const Admin = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
